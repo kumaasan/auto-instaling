@@ -1,33 +1,58 @@
 import puppeteer from 'puppeteer';
 
+
+const daneLogowania = {
+  login: "5pg186772",
+  password: "iteri"
+}
+
 const browser = await puppeteer.launch({
   headless: false, // <- pokaże prawdziwe okno
   defaultViewport: null, // <- pełne okno zamiast małej ramki
+  args: ["--start-maximized"], // <- opcjonalnie: od razu zmaksymalizowane
 });
 
 const page = await browser.newPage();
 
-// Navigate the page to a URL.
-await page.goto('https://developer.chrome.com/');
-
-// Set screen size.
 await page.setViewport({width: 1080, height: 1024});
 
-// Open the search menu using the keyboard.
-await page.keyboard.press('/');
+await page.goto('https://instaling.pl');
 
-// Type into search box using accessible input name.
-await page.locator('::-p-aria(Search)').fill('automate beyond recorder');
+// cookies
+const cookieBtn = page.locator('.fc-button-label').filter(el => el.innerText.includes('Consent'));
 
-// Wait and click on first result.
-await page.locator('.devsite-result-item-link').click();
+await cookieBtn.wait();
 
-// Locate the full title with a unique string.
-const textSelector = await page
-  .locator('::-p-text(Customize and automate)')
-  .waitHandle();
-const fullTitle = await textSelector?.evaluate(el => el.textContent);
+await new Promise(r => setTimeout(r, 500));
 
-console.log('The title of this blog post is "%s".', fullTitle);
+await cookieBtn.click();
 
-await browser.close();
+//logowanie sie
+
+await page.locator('.btn-login').click();
+
+const loginInput = page.locator('.form-control').filter(input => input.id === 'log_email');
+
+await loginInput.fill(daneLogowania.login);
+
+await page.locator('#log_password').fill(daneLogowania.password);
+
+await page.locator('.btn.btn-primary.w-100.mt-3.mb-3').click();
+
+// rozpoczecie sesji
+
+const dokonczSesje = page.locator('.btn.btn-instaling.btn-start-session');
+if(!dokonczSesje){
+  console.log("leci normalna sesja");
+}else{
+  dokonczSesje.click();
+  // nie wiem dlaczego sie nie klika
+  await page.locator('btn-instaling').filter(btn => btn.innerText.includes('Kontynuuj sesję')).click();
+
+
+}
+
+
+
+
+// await browser.close();
