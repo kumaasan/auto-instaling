@@ -1,58 +1,75 @@
 import puppeteer from 'puppeteer';
 
-
 const daneLogowania = {
   login: "5pg186772",
   password: "iteri"
+};
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 const browser = await puppeteer.launch({
-  headless: false, // <- pokaże prawdziwe okno
-  defaultViewport: null, // <- pełne okno zamiast małej ramki
-  args: ["--start-maximized"], // <- opcjonalnie: od razu zmaksymalizowane
+  headless: false,
+  defaultViewport: null,
+  args: ["--start-maximized"],
 });
 
 const page = await browser.newPage();
-
-await page.setViewport({width: 1080, height: 1024});
-
+await page.setViewport({ width: 1080, height: 1024 });
 await page.goto('https://instaling.pl');
 
 // cookies
-const cookieBtn = page.locator('.fc-button-label').filter(el => el.innerText.includes('Consent'));
+await page.waitForSelector('.fc-button-label');
+await page.evaluate(() => {
+  const buttons = Array.from(document.querySelectorAll('.fc-button-label'));
+  const consentBtn = buttons.find(b => b.innerText.includes('Consent'));
+  if (consentBtn) consentBtn.click();
+});
+await sleep(500);
 
-await cookieBtn.wait();
+// logowanie
+await page.waitForSelector('.btn-login');
+await page.click('.btn-login');
 
-await new Promise(r => setTimeout(r, 500));
+await page.waitForSelector('#log_email');
+await page.type('#log_email', daneLogowania.login);
 
-await cookieBtn.click();
+await page.waitForSelector('#log_password');
+await page.type('#log_password', daneLogowania.password);
 
-//logowanie sie
+await page.waitForSelector('.btn.btn-primary.w-100.mt-3.mb-3');
+await page.click('.btn.btn-primary.w-100.mt-3.mb-3');
 
-await page.locator('.btn-login').click();
+// rozpoczęcie sesji
+console.log("rozpoczecie sesji")
+await page.waitForSelector('.btn.btn-instaling.btn-start-session', { visible: true });
+await page.click('.btn.btn-instaling.btn-start-session');
 
-const loginInput = page.locator('.form-control').filter(input => input.id === 'log_email');
+//zacznij swoja codzienna sesje
+console.log("zacznjij swoja codzienna sesje")
+const test1 = await page.evaluate(() => {
+  return Array.from(document.querySelectorAll('*'))
+    .map(e => e.className)
+    .filter(c => c.includes('.btn'));
+})
+console.log(test1);
+await page.waitForSelector('.btn.btn-instaling.btn-start-session', { visible: true });
+await page.click('.btn.btn-instaling.btn-start-session')
 
-await loginInput.fill(daneLogowania.login);
-
-await page.locator('#log_password').fill(daneLogowania.password);
-
-await page.locator('.btn.btn-primary.w-100.mt-3.mb-3').click();
-
-// rozpoczecie sesji
-
-const dokonczSesje = page.locator('.btn.btn-instaling.btn-start-session');
-if(!dokonczSesje){
-  console.log("leci normalna sesja");
-}else{
-  dokonczSesje.click();
-  // nie wiem dlaczego sie nie klika
-  await page.locator('btn-instaling').filter(btn => btn.innerText.includes('Kontynuuj sesję')).click();
-
-
+const kontynuacjaSesji = await page.waitForSelector('btn.btn-instaling.btn-start-session', { visible: true });
+if (kontynuacjaSesji){
+  await page.click(kontynuacjaSesji);
 }
+console.log("po ifie")
 
+//sprawdzanie slowka po poksku
+const test = await page.evaluate(() => {
+  const polskieSlowo = document.querySelector('.translation').innerText;
+  return polskieSlowo;
+})
+console.log(test)
 
-
+console.log("leci normalna sesja");
 
 // await browser.close();
