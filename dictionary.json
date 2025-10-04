@@ -1,0 +1,58 @@
+[
+  {
+    "polish": "nazwisko",
+    "german": "der Familienname"
+  },
+  {
+    "polish": "podawać, wskazać",
+    "german": "angeben"
+  },
+  {
+    "polish": "płeć",
+    "german": "das Geschlecht"
+  },
+  {
+    "polish": "kod pocztowy",
+    "german": "die Postleitzahl"
+  },
+  {
+    "polish": "data urodzenia",
+    "german": "das Geburtsdatum"
+  },
+  {
+    "polish": "zawód (profesja)",
+    "german": "der Beruf"
+  },
+  {
+    "polish": "znak zodiaku",
+    "german": "das Sternzeichen"
+  },
+  {
+    "polish": "miejsce urodzenia",
+    "german": "der Geburtsort"
+  },
+  {
+    "polish": "narodowość, obywatelstwo",
+    "german": "die Staatsangehörigkeit"
+  },
+  {
+    "polish": "imię",
+    "german": "der Vorname"
+  },
+  {
+    "polish": "wiek",
+    "german": "das Alter"
+  },
+  {
+    "polish": "urodziny",
+    "german": "der Geburtstag"
+  },
+  {
+    "polish": "stan cywilny",
+    "german": "der Familienstand"
+  },
+  {
+    "polish": "miejsce zamieszkania",
+    "german": "der Wohnort"
+  }
+]
