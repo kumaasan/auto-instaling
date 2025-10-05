@@ -48,10 +48,9 @@ async function clickButtonByText(page, selector, text) {
   for (const btn of buttons) {
     const btnText = await page.evaluate(el => el.innerText.trim(), btn);
     if (btnText === text) {
-      console.log("Klikam przycisk:", btnText);
+      // console.log("Klikam przycisk:", btnText);
 
       try{
-        // pewniejszy sposób
         await page.evaluate(el => el.click(), btn);
       }catch (err){
         console.error("Błąd przy klikaniu:", err);
@@ -72,6 +71,7 @@ const browser = await puppeteer.launch({
   headless: false,
   defaultViewport: null,
   args: ["--start-maximized"],
+  slowMo: 15
 });
 
 const page = await browser.newPage();
@@ -108,27 +108,34 @@ await page.click('.btn.btn-instaling.btn-start-session');
 console.log("licze 5sek")
 await sleep(5000);
 
-
-const buttons = await page.$$('.btn.btn-instaling.btn-start-session');
-
-for (const btn of buttons) {
-  const text = await page.evaluate(el => el.innerText.trim(), btn);
-
-  //tu jest do poprawienia ten if bo nie dziala przy 1 sesji
-  if (text === "Kontynuuj sesję" || text === "Zacznij swoją codziennąsesję") {
-    await btn.click();
-    break;
-  }
+try{
+  await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', 'Zacznij swoją codzienną sesję')
+  await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', 'Kontynuuj sesję');
+  await sleep(1500)
+}catch(err){
+  console.error(err);
 }
-await sleep(3500)
+
 
 while (true) {
-  // czekaj na nowe polskie słowo
+  try{
+    const dontKnowBtn = await page.$('#dont_know_new')
+    if(dontKnowBtn){
+      console.log("klikam przycisk nie znam");
+      await page.evaluate(el => el.click(), dontKnowBtn);
+      await sleep(100);
+      await clickButtonByText(page, '#next_word', "Pomiń");
+    }
+  }catch(err){
+    console.error(err);
+  }
+
   let polishWord;
   try {
     await page.waitForSelector('.translation', { visible: true, timeout: 5000 });
     polishWord = await page.$eval('.translation', el => el.innerText.trim());
   } catch {
+    await clickButtonByText(page, '#return_mainpage', "Powrót na stronę główną");
     console.log("Koniec sesji");
     break;
   }
@@ -140,7 +147,7 @@ while (true) {
   await page.evaluate(() => { document.querySelector('#answer').value = ''; });
 
   if (!germanWord) {
-    await page.type('#answer', "nie wiem");
+    await page.type('#answer', "nie wiem", {delay: 150});
     await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
     await page.waitForSelector('#word', { visible: true });
     const nieznaneNiemieckieSlowo = await page.$eval('#word', el => el.innerText.trim());
@@ -148,7 +155,8 @@ while (true) {
     dictionary.push({ polish: polishWord, german: nieznaneNiemieckieSlowo });
     saveToDictionary();
   } else {
-    await page.type('#answer', germanWord);
+    await page.type('#answer', germanWord, {delay: 150});
+    await sleep(500);
     await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
   }
 
@@ -158,4 +166,4 @@ while (true) {
   await sleep(1000);
 }
 
-// await browser.close();
+await browser.close();
