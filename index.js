@@ -17,6 +17,21 @@ const daneLogowania = {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+async function dumpButtons(page, selector) {
+  const buttons = await page.$$(selector);
+
+  console.log("znalazlem " + selector + " , " + buttons.length);
+
+  const htmlArray = await Promise.all(
+    buttons.map(btn => page.evaluate(el => el.outerHTML, btn))
+  );
+  const textArray = await Promise.all(
+    buttons.map(btn => page.evaluate(el => el.innerText, btn))
+  );
+
+  console.log("HTML przycisków:", htmlArray);
+  console.log("Teksty przycisków:", textArray);
+}
 
 function getGermanWord(word) {
   const wordPair = dictionary.find(item => item.polish === word);
@@ -39,6 +54,7 @@ async function clickButtonByText(page, selector, text) {
 
 function saveToDictionary() {
   fs.writeFileSync("dictionary.json", JSON.stringify(dictionary, null, 2), "utf8");
+  console.log("dodano nowy wyraz do słownika")
 }
 
 const browser = await puppeteer.launch({
@@ -73,7 +89,24 @@ await page.type('#log_password', daneLogowania.password, { delay: 50 });
 await page.waitForSelector('.btn.btn-primary.w-100.mt-3.mb-3');
 await page.click('.btn.btn-primary.w-100.mt-3.mb-3');
 
+await sleep(3000);
+
+try{
+  console.log("cos sie dzieje")
+  await dumpButtons(page, '.btn.btn-instaling.btn-start-session')
+  await clickButtonByText(page ,'.btn.btn-instaling.btn-start-session', 'Rozpocznij sesję');
+
+}catch (err){
+  console.log(err);
+}
+// await dumpButtons(page,'.btn.btn-instaling.btn-start-session')
 // rozpoczęcie sesji
+try{
+  await page.waitForSelector('#streak-button-close');
+  await page.click('#streak-button-close');
+}catch{}
+
+await sleep(3000)
 await page.waitForSelector('.btn.btn-instaling.btn-start-session', { visible: true });
 await page.click('.btn.btn-instaling.btn-start-session');
 
@@ -87,13 +120,18 @@ try {
 
 while (true) {
   try {
-    const dontKnowBtn = await page.$('#dont_know_new');
+    const dontKnowBtn = await page.waitForSelector('#dont_know_new', { visible: true, timeout: 1000 })
+      .catch(() => null);
+
     if (dontKnowBtn) {
-      await page.evaluate(el => el.click(), dontKnowBtn);
+      await dontKnowBtn.click();
       await sleep(100);
       await clickButtonByText(page, '#next_word', "Pomiń");
     }
-  } catch {}
+  } catch (err) {
+    console.error("Błąd przy próbie kliknięcia 'Nie wiem':", err);
+  }
+
 
   let polishWord;
   try {
@@ -109,6 +147,7 @@ while (true) {
   await page.evaluate(() => { document.querySelector('#answer').value = ''; });
 
   if (!germanWord) {
+    await sleep(1000)
     await page.type('#answer', "nie wiem", { delay: 50 });
     await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
     await page.waitForSelector('#word', { visible: true });
@@ -118,14 +157,15 @@ while (true) {
     saveToDictionary();
   } else {
     console.log(`${polishWord} -> ${germanWord}`);
+    await sleep(1000)
     await page.type('#answer', germanWord, { delay: 50 });
     await sleep(500);
     await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
   }
-
+  await sleep(1000)
   await page.waitForSelector('#next_word', { visible: true });
   await page.click('#next_word');
   await sleep(1000);
 }
-
+console.log("koniec sesji");
 await browser.close();
