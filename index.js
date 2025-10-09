@@ -17,6 +17,7 @@ const daneLogowania = {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
 async function dumpButtons(page, selector) {
   const buttons = await page.$$(selector);
 
@@ -54,7 +55,6 @@ async function clickButtonByText(page, selector, text) {
 
 function saveToDictionary() {
   fs.writeFileSync("dictionary.json", JSON.stringify(dictionary, null, 2), "utf8");
-  console.log("dodano nowy wyraz do słownika")
 }
 
 const browser = await puppeteer.launch({
@@ -89,24 +89,7 @@ await page.type('#log_password', daneLogowania.password, { delay: 50 });
 await page.waitForSelector('.btn.btn-primary.w-100.mt-3.mb-3');
 await page.click('.btn.btn-primary.w-100.mt-3.mb-3');
 
-await sleep(3000);
-
-try{
-  console.log("cos sie dzieje")
-  await dumpButtons(page, '.btn.btn-instaling.btn-start-session')
-  await clickButtonByText(page ,'.btn.btn-instaling.btn-start-session', 'Rozpocznij sesję');
-
-}catch (err){
-  console.log(err);
-}
-// await dumpButtons(page,'.btn.btn-instaling.btn-start-session')
 // rozpoczęcie sesji
-try{
-  await page.waitForSelector('#streak-button-close');
-  await page.click('#streak-button-close');
-}catch{}
-
-await sleep(3000)
 await page.waitForSelector('.btn.btn-instaling.btn-start-session', { visible: true });
 await page.click('.btn.btn-instaling.btn-start-session');
 
@@ -114,23 +97,32 @@ await sleep(2000);
 
 try {
   await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', 'Zacznij swoją codzienną sesję');
+  await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', 'Rozpocznij sesję');
   await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', 'Kontynuuj sesję');
   await sleep(1500);
 } catch {}
 
 while (true) {
   try {
-    const dontKnowBtn = await page.waitForSelector('#dont_know_new', { visible: true, timeout: 1000 })
-      .catch(() => null);
-
+    const dontKnowBtn = await page.waitForSelector('#dont_know_new', { visible: true, timeout: 1500 });
     if (dontKnowBtn) {
-      await dontKnowBtn.click();
-      await sleep(100);
+      console.log("nie wiem 1")
+      await page.evaluate(el => el.click(), dontKnowBtn);
+      await sleep(500);
       await clickButtonByText(page, '#next_word', "Pomiń");
     }
-  } catch (err) {
-    console.error("Błąd przy próbie kliknięcia 'Nie wiem':", err);
-  }
+  } catch {}
+
+  try {
+    const dontKnowBtn = await page.waitForSelector('#dont_know_new', { visible: true, timeout: 1500 });
+    if (dontKnowBtn) {
+      console.log("nie wiem 2");
+      await page.evaluate(el => el.click(), dontKnowBtn);
+      await sleep(500);
+      await clickButtonByText(page, '#next_word', "Pomiń");
+    }
+  } catch {}
+
 
 
   let polishWord;
@@ -138,7 +130,11 @@ while (true) {
     await page.waitForSelector('.translation', { visible: true, timeout: 2000 });
     polishWord = await page.$eval('.translation', el => el.innerText.trim());
   } catch {
-    await clickButtonByText(page, '#return_mainpage', "Powrót na stronę główną");
+    await page.waitForSelector('#return_mainpage', { visible: true, timeout: 2000 });
+    await page.click('#return_mainpage');
+    // await clickButtonByText(page, '#return_mainpage', "Powrót na stronę główną");
+    // await page.goto('https://instaling.pl/student/pages/mainPage.php?student_id=2864004')
+    // await browser.close();
     break;
   }
 
@@ -147,8 +143,8 @@ while (true) {
   await page.evaluate(() => { document.querySelector('#answer').value = ''; });
 
   if (!germanWord) {
-    await sleep(1000)
-    await page.type('#answer', "nie wiem", { delay: 50 });
+    await sleep(500)
+    await page.type('#answer', "nie wiem", { delay: 100 });
     await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
     await page.waitForSelector('#word', { visible: true });
     const nieznaneNiemieckieSlowo = await page.$eval('#word', el => el.innerText.trim());
@@ -157,15 +153,15 @@ while (true) {
     saveToDictionary();
   } else {
     console.log(`${polishWord} -> ${germanWord}`);
-    await sleep(1000)
-    await page.type('#answer', germanWord, { delay: 50 });
+    await sleep(500)
+    await page.type('#answer', germanWord, { delay: 100 });
     await sleep(500);
     await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
   }
-  await sleep(1000)
+
   await page.waitForSelector('#next_word', { visible: true });
   await page.click('#next_word');
   await sleep(1000);
 }
-console.log("koniec sesji");
+console.log("koniec")
 await browser.close();
