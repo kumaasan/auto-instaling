@@ -8,6 +8,11 @@ try {
 } catch {
   dictionary = [];
 }
+//wojtek
+// const daneLogowania = {
+//   login: "5p2144633",
+//   password: "tprns"
+// };
 
 const daneLogowania = {
   login: "5pg186772",
@@ -102,11 +107,12 @@ try {
   await sleep(1500);
 } catch {}
 
+let counter =0;
 while (true) {
   try {
     const dontKnowBtn = await page.waitForSelector('#dont_know_new', { visible: true, timeout: 1500 });
     if (dontKnowBtn) {
-      console.log("nie wiem 1")
+      console.log("dont know word button")
       await page.evaluate(el => el.click(), dontKnowBtn);
       await sleep(500);
       await clickButtonByText(page, '#next_word', "Pomiń");
@@ -116,7 +122,7 @@ while (true) {
   try {
     const dontKnowBtn = await page.waitForSelector('#dont_know_new', { visible: true, timeout: 1500 });
     if (dontKnowBtn) {
-      console.log("nie wiem 2");
+      console.log("dont know word");
       await page.evaluate(el => el.click(), dontKnowBtn);
       await sleep(500);
       await clickButtonByText(page, '#next_word', "Pomiń");
@@ -152,7 +158,8 @@ while (true) {
     dictionary.push({ polish: polishWord, german: nieznaneNiemieckieSlowo });
     saveToDictionary();
   } else {
-    console.log(`${polishWord} -> ${germanWord}`);
+    counter++;
+    console.log(`${counter}. ${polishWord} -> ${germanWord}`);
     await sleep(500)
     await page.type('#answer', germanWord, { delay: 100 });
     await sleep(500);
