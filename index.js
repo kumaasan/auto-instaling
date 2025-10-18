@@ -8,16 +8,6 @@ try {
 } catch {
   dictionary = [];
 }
-// wojtek
-// const daneLogowania = {
-//   login: "5p2144633",
-//   password: "tprns"
-// };
-
-const daneLogowania = {
-  login: "5pg186772",
-  password: "iteri"
-};
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -74,15 +64,15 @@ async function clickDontKnowIfVisible(page) {
       await sleep(500);
       return true; // kliknięto
     }
-  } catch {
-    // element nie istnieje lub jest niewidoczny
-  }
-  return false; // nic nie kliknięto
+  } catch {}
+  return false;
 }
 
 function saveToDictionary() {
   fs.writeFileSync("dictionary.json", JSON.stringify(dictionary, null, 2), "utf8");
 }
+
+const browser = await puppeteer.launch();
 async function runSession(daneLogowania) {
   console.log('sesja sie zaczyna')
   const browser = await puppeteer.launch({
@@ -136,8 +126,6 @@ async function runSession(daneLogowania) {
       console.log('kliknieto dont know button')
     }
 
-
-
     let polishWord;
     try {
       await page.waitForSelector('.translation', { visible: true, timeout: 2000 });
@@ -145,6 +133,7 @@ async function runSession(daneLogowania) {
     } catch {
       await page.waitForSelector('#return_mainpage', { visible: true, timeout: 2000 });
       await page.click('#return_mainpage');
+      await browser.close();
       break;
     }
 
@@ -154,7 +143,7 @@ async function runSession(daneLogowania) {
 
     if (!germanWord) {
       await sleep(500)
-      await page.type('#answer', "nie wiem", { delay: 100 });
+      await page.type('#answer', "nie wiem", { delay: 10 });
       await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
       await page.waitForSelector('#word', { visible: true });
       const nieznaneNiemieckieSlowo = await page.$eval('#word', el => el.innerText.trim());
@@ -165,7 +154,7 @@ async function runSession(daneLogowania) {
       counter++;
       console.log(`${counter}. ${polishWord} -> ${germanWord}`);
       await sleep(500)
-      await page.type('#answer', germanWord, { delay: 100 });
+      await page.type('#answer', germanWord, { delay: 10 });
       await sleep(500);
       await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
     }
@@ -182,7 +171,9 @@ const users = [
 
 for (const user of users) {
   await runSession(user);
+  await browser.close();
 }
 
 console.log("Wszystkie sesje zakończone.");
-// process.exit(0);
+process.exit(0)
+await browser.close();
