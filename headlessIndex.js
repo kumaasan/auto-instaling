@@ -76,7 +76,7 @@ const browser = await puppeteer.launch();
 async function runSession(daneLogowania) {
   console.log('sesja sie zaczyna')
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     defaultViewport: null,
     args: ["--start-maximized"],
   });
@@ -106,7 +106,7 @@ async function runSession(daneLogowania) {
 
   await page.waitForSelector('.btn.btn-primary.w-100.mt-3.mb-3');
   await page.click('.btn.btn-primary.w-100.mt-3.mb-3');
-
+  
   //streak button
   try{
     await page.waitForSelector('#streak-button-close');
@@ -115,6 +115,7 @@ async function runSession(daneLogowania) {
   }catch{
     console.log('nie ma streak buttona')
   }
+
   // rozpoczęcie sesji
   await page.waitForSelector('.btn.btn-instaling.btn-start-session', { visible: true });
   await page.click('.btn.btn-instaling.btn-start-session');
@@ -173,8 +174,8 @@ async function runSession(daneLogowania) {
   }
 }
 const users = [
- /*ja*/ { login: "5pg186772", password: "iteri" },
- /*wojtek*/ { login: "5p2144633", password: "tprns" }
+  /*ja*/ { login: "5pg186772", password: "iteri" },
+  /*wojtek*/ { login: "5p2144633", password: "tprns" }
 ];
 
 for (const user of users) {
