@@ -70,6 +70,7 @@ async function clickDontKnowIfVisible(page) {
 
 function saveToDictionary() {
   fs.writeFileSync("dictionary.json", JSON.stringify(dictionary, null, 2), "utf8");
+  console.log("zapisano nowe słowo")
 }
 
 const browser = await puppeteer.launch();
@@ -79,6 +80,7 @@ async function runSession(daneLogowania) {
     headless: false,
     defaultViewport: null,
     args: ["--start-maximized"],
+    // executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   });
 
   const page = await browser.newPage();
@@ -137,7 +139,14 @@ async function runSession(daneLogowania) {
     let polishWord;
     try {
       await page.waitForSelector('.translation', { visible: true, timeout: 2000 });
-      polishWord = await page.$eval('.translation', el => el.innerText.trim());
+      polishWord = await page.$eval('.translation', el => {
+        let s = el.innerText || '';
+        // remove zero-width and invisible chars inside page context
+        s = s.replace(/[\u200B\u200C\u200D\u200E\u200F\uFEFF\u2060]/g, '');
+        s = s.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
+        try { s = s.normalize('NFC'); } catch(e) {}
+        return s;
+      });
     } catch {
       await page.waitForSelector('#return_mainpage', { visible: true, timeout: 2000 });
       await page.click('#return_mainpage');
@@ -150,7 +159,6 @@ async function runSession(daneLogowania) {
     await page.evaluate(() => { document.querySelector('#answer').value = ''; });
 
     if (!germanWord) {
-      await sleep(500)
       await page.type('#answer', "nie wiem", { delay: 10 });
       await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
       await page.waitForSelector('#word', { visible: true });
@@ -173,6 +181,7 @@ async function runSession(daneLogowania) {
   }
 }
 const users = [
+ /*ja*/ { login: "5pg186772", password: "iteri" },
  /*ja*/ { login: "5pg186772", password: "iteri" },
  /*wojtek*/ { login: "5p2144633", password: "tprns" }
 ];
