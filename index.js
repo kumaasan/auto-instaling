@@ -76,11 +76,12 @@ function saveToDictionary() {
 const browser = await puppeteer.launch();
 async function runSession(daneLogowania) {
   console.log('sesja sie zaczyna')
+  console.log("======== " + daneLogowania.name+ " ========");
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: null,
-    args: ["--start-maximized"],
-    // executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    args: ["--start-maximized", "--mute-audio"],
+    executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   });
 
   const page = await browser.newPage();
@@ -181,9 +182,12 @@ async function runSession(daneLogowania) {
   }
 }
 const users = [
- /*ja*/ { login: "5pg186772", password: "iteri" },
- /*ja*/ { login: "5pg186772", password: "iteri" },
- /*wojtek*/ { login: "5p2144633", password: "tprns" }
+  /*ja*/ { login: "5pg186772", password: "iteri", name: "mariusz" },
+  /*ja*/ { login: "5pg186772", password: "iteri", name: "mariusz" },
+  /*michal*/ {login: "5pg171917", password: "kmspe", name: "michał" },
+  /*michal*/ {login: "5pg171917", password: "kmspe", name: "michał" },
+  /*wojtek*/ { login: "5p2144633", password: "tprns", name: "wojtek" },
+  /*wojtek*/ { login: "5p2144633", password: "tprns", name: "wojtek" }
 ];
 
 for (const user of users) {
