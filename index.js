@@ -1,5 +1,6 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
+import chalk from 'chalk'
 
 let dictionary = [];
 
@@ -62,7 +63,7 @@ async function clickDontKnowIfVisible(page) {
       await sleep(500);
       await clickButtonByText(page, '#next_word', "Pomiń");
       await sleep(500);
-      return true; // kliknięto
+      return true;
     }
   } catch {}
   return false;
@@ -76,7 +77,7 @@ function saveToDictionary() {
 const browser = await puppeteer.launch();
 async function runSession(daneLogowania) {
   console.log('sesja sie zaczyna')
-  console.log("======== " + daneLogowania.name+ " ========");
+  console.log(chalk.green("======== " + daneLogowania.name+ " ========"));
   const browser = await puppeteer.launch({
     headless: false,
     defaultViewport: null,
@@ -131,7 +132,7 @@ async function runSession(daneLogowania) {
     await sleep(1500);
   } catch {}
 
-  let counter =0;
+  let counter = 0;
   while (true) {
     while(await clickDontKnowIfVisible(page)){
       console.log('kliknieto dont know button')
@@ -142,7 +143,6 @@ async function runSession(daneLogowania) {
       await page.waitForSelector('.translation', { visible: true, timeout: 2000 });
       polishWord = await page.$eval('.translation', el => {
         let s = el.innerText || '';
-        // remove zero-width and invisible chars inside page context
         s = s.replace(/[\u200B\u200C\u200D\u200E\u200F\uFEFF\u2060]/g, '');
         s = s.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
         try { s = s.normalize('NFC'); } catch(e) {}
@@ -170,17 +170,42 @@ async function runSession(daneLogowania) {
     } else {
       counter++;
       console.log(`${counter}. ${polishWord} -> ${germanWord}`);
-      await sleep(500)
+      await sleep(500);
       await page.type('#answer', germanWord, { delay: 10 });
       await sleep(500);
       await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
-    }
+      await sleep(500);
 
+      // Pobierz poprawną odpowiedź ze strony
+      let correctAnswer = '';
+      try {
+        correctAnswer = await page.$eval('#word', el => el.innerText.trim());
+      } catch {}
+
+      // Porównaj to, co wpisałeś z tym, co pokazuje strona
+      if (correctAnswer && correctAnswer !== germanWord) {
+        console.log(chalk.red(`❌ BŁĄD: wpisano "${germanWord}" ale poprawnie: "${correctAnswer}"`));
+
+        // Kliknij "Dalej"
+        await page.waitForSelector('#next_word', { visible: true });
+        await page.click('#next_word');
+        await sleep(1000);
+
+        // Wyczyść input i wpisz poprawną odpowiedź
+        await page.evaluate(() => { document.querySelector('#answer').value = ''; });
+        await sleep(500);
+        console.log(chalk.green(`✓ Wpisuję poprawną odpowiedź: "${correctAnswer}"`));
+        await page.type('#answer', correctAnswer, { delay: 10 });
+        await sleep(500);
+        await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
+      }
+    }
     await page.waitForSelector('#next_word', { visible: true });
     await page.click('#next_word');
     await sleep(1000);
   }
 }
+
 const users = [
   /*ja*/ { login: "5pg186772", password: "iteri", name: "mariusz" },
   /*ja*/ { login: "5pg186772", password: "iteri", name: "mariusz" },
