@@ -74,7 +74,6 @@ function saveToDictionary() {
   console.log("zapisano nowe słowo")
 }
 
-const browser = await puppeteer.launch();
 async function runSession(daneLogowania) {
   console.log('sesja sie zaczyna')
   console.log(chalk.green("======== " + daneLogowania.name+ " ========"));
@@ -217,7 +216,6 @@ const users = [
 
 for (const user of users) {
   await runSession(user);
-  await browser.close();
 }
 
 console.log("Wszystkie sesje zakończone.");
