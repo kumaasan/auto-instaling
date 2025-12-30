@@ -65,7 +65,10 @@ async function clickDontKnowIfVisible(page) {
       await sleep(500);
       return true;
     }
-  } catch {}
+  } catch {
+    await clickButtonByText(page, '#dont_know_new', "Nie znam");
+    console.log("catch sie wykonał");
+  }
   return false;
 }
 
@@ -186,7 +189,7 @@ async function runSession(daneLogowania) {
         console.log(chalk.red(`❌ BŁĄD: wpisano "${germanWord}" ale poprawnie: "${correctAnswer}"`));
 
         // Kliknij "Dalej"
-        await page.waitForSelector('#next_word', { visible: true });
+        await page.waitForSelector('#next_word', { visible: true, timeout: 60000 });
         await page.click('#next_word');
         await sleep(1000);
 
@@ -199,7 +202,7 @@ async function runSession(daneLogowania) {
         await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
       }
     }
-    await page.waitForSelector('#next_word', { visible: true });
+    await page.waitForSelector('#next_word', { visible: true, timeout: 60000 });
     await page.click('#next_word');
     await sleep(1000);
   }
