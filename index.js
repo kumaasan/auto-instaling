@@ -121,7 +121,7 @@ async function runSession(daneLogowania) {
   }catch{
     console.log('nie ma streak buttona')
   }
-  // rozpoczęcie sesji
+  // start sesji
   await page.waitForSelector('.btn.btn-instaling.btn-start-session', { visible: true });
   await page.click('.btn.btn-instaling.btn-start-session');
 
@@ -178,13 +178,12 @@ async function runSession(daneLogowania) {
       await clickButtonByText(page, '.btn.btn-instaling.btn-start-session', "Sprawdź");
       await sleep(500);
 
-      // Pobierz poprawną odpowiedź ze strony
+      // Pobieranie poprawnej odpowiedzi ze strony
       let correctAnswer = '';
       try {
         correctAnswer = await page.$eval('#word', el => el.innerText.trim());
       } catch {}
 
-      // Porównaj to, co wpisałeś z tym, co pokazuje strona
       if (correctAnswer && correctAnswer !== germanWord) {
         console.log(chalk.red(`❌ BŁĄD: wpisano "${germanWord}" ale poprawnie: "${correctAnswer}"`));
 
@@ -209,12 +208,7 @@ async function runSession(daneLogowania) {
 }
 
 const users = [
-  /*ja*/ { login: "5pg186772", password: "iteri", name: "mariusz" },
-  /*ja*/ { login: "5pg186772", password: "iteri", name: "mariusz" },
-  /*michal*/ {login: "5pg171917", password: "kmspe", name: "michał" },
-  /*michal*/ {login: "5pg171917", password: "kmspe", name: "michał" },
-  /*wojtek*/ { login: "5p2144633", password: "tprns", name: "wojtek" },
-  /*wojtek*/ { login: "5p2144633", password: "tprns", name: "wojtek" }
+
 ];
 
 for (const user of users) {
